@@ -30,7 +30,7 @@ if (process.env.NODE_ENV === 'production') {
 
 app.use(authRouter);
 
-app.get("/", TokenAuthorization, (req: Request, res: Response) => {
+app.get("/", (req: Request, res: Response) => {
     res.send("Home route")
 })
 
