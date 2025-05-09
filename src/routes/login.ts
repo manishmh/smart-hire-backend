@@ -59,11 +59,20 @@ LoginRouter.post("/", async (req: Request, res: Response) => {
             maxAge: 30 * 24 * 60 * 60 * 1000,
         });
 
+        const user = {
+            id: existingUser.id,
+            name: existingUser.name,
+            email: existingUser.email,
+            role: existingUser.role,
+            createdAt: existingUser.createdAt,
+        }
+
         res.status(200).json({
             success: true,
             message: "Logged in successfully",
             accessToken,
-            refreshToken
+            refreshToken,
+            user: user
         });
         return;
 
