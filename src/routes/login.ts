@@ -64,6 +64,8 @@ LoginRouter.post("/", async (req: Request, res: Response) => {
             name: existingUser.name,
             email: existingUser.email,
             role: existingUser.role,
+            accessToken: accessToken,
+            refreshToken: refreshToken,
             createdAt: existingUser.createdAt,
         }
 
