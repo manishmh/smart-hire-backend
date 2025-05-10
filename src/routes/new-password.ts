@@ -49,7 +49,7 @@ NewPasswordRouter.post("/", async (req: Request, res: Response) => {
             }
         })
 
-        await db.passwordResetToken.delete({ where: { id: resetToken.id} })
+        await db.passwordResetToken.delete({ where: { id: resetToken.id } })
 
         res.status(200).json({ success: true, message: "Password reset successfully" })
         return;
