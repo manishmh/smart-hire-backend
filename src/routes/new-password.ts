@@ -9,8 +9,12 @@ const NewPasswordRouter = Router();
 NewPasswordRouter.post("/", async (req: Request, res: Response) => {
     try {
         const userData = req.body;
-        if (!userData.token) {
-            res.status(404).json({ success: false, messag: "Missing token" })
+        const { token } = req.query;
+
+        console.log('token', token)
+
+        if (typeof token !== "string" || !token) {
+            res.status(400).json({ success: false, message: "Token is missing or invalid" });
             return;
         }
 
@@ -20,7 +24,7 @@ NewPasswordRouter.post("/", async (req: Request, res: Response) => {
             return;
         }
 
-        const resetToken = await getPasswordResetTokenByToken(validatedInput.data.token);
+        const resetToken = await getPasswordResetTokenByToken(token);
         if (!resetToken) {
             res.status(404).json({ success: false, message: "Token does not exist. Try resetting again"})
             return;

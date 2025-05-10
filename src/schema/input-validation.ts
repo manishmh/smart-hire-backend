@@ -64,7 +64,6 @@ export const loginSchema = z.object({
 })
 
 export const newPasswordSchema = z.object({
-  token: z.string({ required_error: "token is required"}),
   ...refinedPasswordSchema.shape,
   confirmPassword: z.string({
     required_error: "Confirm password is required",
