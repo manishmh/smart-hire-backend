@@ -30,7 +30,7 @@ export const passwordSchema = z.object({
     .max(MAX_PASSWORD_SIZE, `Password should not exceed ${MAX_PASSWORD_SIZE} characters`)
 });
 
-const refinedPasswordSchema = z
+const refinedPassword = z
   .string({ required_error: "Password is required" })
   .trim()
   .min(MIN_PASSWORD_SIZE, `Password should be at least ${MIN_PASSWORD_SIZE} characters long`)
@@ -48,14 +48,34 @@ const refinedPasswordSchema = z
     message: "Password should contain at least one symbol",
   });
 
+export const refinedPasswordSchema = z.object({
+  password: refinedPassword,
+})
 
 export const registerSchema = z.object({
     ...nameSchema.shape,
     ...emailSchema.shape,
-    password: refinedPasswordSchema
+    ...refinedPasswordSchema.shape
 })
 
 export const loginSchema = z.object({
     ...emailSchema.shape,
     ...passwordSchema.shape,
+})
+
+export const newPasswordSchema = z.object({
+  token: z.string({ required_error: "token is required"}),
+  ...refinedPasswordSchema.shape,
+  confirmPassword: z.string({
+    required_error: "Confirm password is required",
+  }),
+})
+.superRefine(({ confirmPassword, password }, ctx) => {
+  if (confirmPassword !== password) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "The passwords did not match",
+      path: ["confirmPassword"],
+    });
+  }
 })

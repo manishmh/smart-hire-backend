@@ -45,13 +45,25 @@ LoginRouter.post("/", async (req: Request, res: Response) => {
         const accessToken = generateAccessToken(existingUser.email);
         const refreshToken = generateRefreshToken(existingUser.email);
 
+        res.cookie("accessToken", accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 15 * 60 * 1000,
+        });
+
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 30 * 24 * 60 * 60 * 1000,
+        });
+
         const user = {
             id: existingUser.id,
             name: existingUser.name,
             email: existingUser.email,
             role: existingUser.role,
-            accessToken: accessToken,
-            refreshToken: refreshToken,
             createdAt: existingUser.createdAt,
         }
 
