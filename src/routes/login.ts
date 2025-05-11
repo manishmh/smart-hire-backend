@@ -44,18 +44,19 @@ LoginRouter.post("/", async (req: Request, res: Response) => {
 
         const accessToken = generateAccessToken(existingUser.email);
         const refreshToken = generateRefreshToken(existingUser.email);
+        const isProduction = process.env.NODE_ENV === "production";
 
         res.cookie("accessToken", accessToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
+            secure: isProduction,
+            sameSite: "none",
             maxAge: 15 * 60 * 1000,
         });
 
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
+            secure: isProduction,
+            sameSite: "none",
             maxAge: 30 * 24 * 60 * 60 * 1000,
         });
 
