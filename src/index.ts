@@ -5,7 +5,6 @@ import rateLimit from 'express-rate-limit';
 import http from 'http';
 import cookieParser = require('cookie-parser');
 import authRouter from './routes/auth.route'
-import { TokenAuthorization } from './middleware/token-authorization';
 
 dotenv.config();
 
@@ -14,7 +13,7 @@ const app: Application = express();
 // middlewares.
 app.use(express.json());
 app.use(cors({
-    origin: '*',
+    origin: ["http://localhost:3000", "https://smart-hire-mh.vercel.app"],
     credentials: true
 }));
 app.use(cookieParser());

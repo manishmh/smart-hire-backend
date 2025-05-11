@@ -9,11 +9,13 @@ AccessTokenRouter.get('/', (req: Request, res: Response) => {
 
     if (!refreshToken) {
         res.status(403).json({ success: false, message: "No refresh token" })
+        return;
     }
 
     jwt.verify(refreshToken, process.env.JWT_SECRET_TOKEN || "secret_token" as Secret, (err: any, user: any) => {
         if (err) {
             res.status(403).json({ success: false, message: "invalid refreshToken" });
+            return;
         }
 
         req.user = user;
@@ -26,6 +28,7 @@ AccessTokenRouter.get('/', (req: Request, res: Response) => {
             maxAge: 15 * 60 * 1000,
         })
         res.status(200).json({ success: true, message: "accessToken generated" })
+        return;
     })
 })
 
