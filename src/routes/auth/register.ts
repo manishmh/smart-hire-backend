@@ -1,9 +1,9 @@
 import bcryptjs from 'bcryptjs';
 import { Request, Response, Router } from "express";
-import { db } from "../lib/db";
-import { registerSchema } from "../schema/input-validation";
-import { generateVerificationToken } from '../services/auth/generate-token';
-import { GenerateAccountVerificationMail } from '../utils/mail';
+import { db } from "../../lib/db";
+import { registerSchema } from "../../schema/input-validation";
+import { generateVerificationToken } from '../../services/auth/generate-token';
+import { GenerateAccountVerificationMail } from '../../utils/mail';
 
 const RegisterRouter = Router();
 

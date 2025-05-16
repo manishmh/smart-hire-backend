@@ -1,8 +1,8 @@
-import { Router, Request, Response } from "express";
-import { emailSchema } from "../schema/input-validation";
-import { generatePasswordResetToken } from "../services/auth/generate-token";
-import { db } from "../lib/db";
-import { GeneratePasswordResetMail } from "../utils/mail";
+import { Request, Response, Router } from "express";
+import { db } from "../../lib/db";
+import { emailSchema } from "../../schema/input-validation";
+import { generatePasswordResetToken } from "../../services/auth/generate-token";
+import { GeneratePasswordResetMail } from "../../utils/mail";
 
 const ResetPasswordRouter = Router()
 

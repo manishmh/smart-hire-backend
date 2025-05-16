@@ -1,31 +1,26 @@
 import jwt, { Secret } from 'jsonwebtoken';
+import { Role } from '@prisma/client'; 
 
-export const generateAccessToken = (email: string) => {
-    const accessToken = jwt.sign(
-        { 
-            sub: email, 
-            iat: Math.floor(Date.now() / 1000)
-        }, 
-        process.env.JWT_SECRET_TOKEN || "secret_token" as Secret,
-        {
-            expiresIn: '15m'
-        }
-    )
+type TokenUser = {
+  id: string;
+  email: string;
+  role: Role;
+};
 
-    return accessToken;
-}
+export const generateAccessToken = (tokenUser: TokenUser) => {
+  const accessToken = jwt.sign(
+    tokenUser,
+    process.env.JWT_SECRET_TOKEN || "secret_token" as Secret,
+    { expiresIn: '15m' }
+  );
+  return accessToken;
+};
 
-export const generateRefreshToken = (email: string) => {
-    const refreshToken = jwt.sign(
-        { 
-            sub: email, 
-            iat: Math.floor(Date.now() / 1000)
-        }, 
-        process.env.JWT_SECRET_TOKEN || "secret_token" as Secret,
-        {
-            expiresIn: '30d'
-        }
-    )
-
-    return refreshToken;
-}
+export const generateRefreshToken = (tokenUser: TokenUser) => {
+  const refreshToken = jwt.sign(
+    tokenUser,
+    process.env.JWT_SECRET_TOKEN || "secret_token" as Secret,
+    { expiresIn: '30d' }
+  );
+  return refreshToken;
+};

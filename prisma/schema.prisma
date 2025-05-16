@@ -23,6 +23,7 @@ model User {
   image                 String?
   isTwoFactorEnabled    Boolean                @default(false)
   twoFactorConfirmation TwoFactorConfirmation?
+  forms                 Form[]
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
 }
@@ -60,4 +61,46 @@ model TwoFactorConfirmation {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId])
+}
+
+model Form {
+  id          String        @id @default(uuid())
+  name        String
+  description String?
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sections    FormSection[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model FormSection {
+  id     String      @id @default(uuid())
+  title  String
+  order  Int
+  formId String
+  fields FormField[]
+  form   Form        @relation(fields: [formId], references: [id], onDelete: Cascade)
+}
+
+model FormField {
+  id           String         @id @default(uuid())
+  label        String
+  fieldType    String
+  required     Boolean
+  order        String
+  placeholder  String?
+  defaultValue String?
+  sectionId    String
+  section      FormSection    @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  option       FieldOptions[]
+}
+
+model FieldOptions {
+  id      String    @id
+  value   String
+  label   String
+  order   Int
+  fieldId String
+  field   FormField @relation(fields: [fieldId], references: [id], onDelete: Cascade)
 }

@@ -1,8 +1,8 @@
-import { Router, Response, Request } from 'express'
-import { newPasswordSchema } from '../schema/input-validation';
-import bcryptjs from 'bcryptjs'
-import { db } from '../lib/db';
-import { getPasswordResetTokenByToken } from '../services/auth/passwordReset';
+import bcryptjs from 'bcryptjs';
+import { Request, Response, Router } from 'express';
+import { db } from '../../lib/db';
+import { newPasswordSchema } from '../../schema/input-validation';
+import { getPasswordResetTokenByToken } from '../../services/auth/passwordReset';
 
 const NewPasswordRouter = Router();
 

@@ -1,6 +1,6 @@
 import { Request, Response, Router } from "express";
 import jwt, { Secret } from 'jsonwebtoken';
-import { generateAccessToken } from "../utils/jwt";
+import { generateAccessToken } from "../../utils/jwt";
 
 const AccessTokenRouter = Router();
 

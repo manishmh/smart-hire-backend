@@ -1,8 +1,8 @@
 import bcryptjs from 'bcryptjs';
 import { Request, Response, Router } from "express";
-import { db } from "../lib/db";
-import { loginSchema } from "../schema/input-validation";
-import { generateAccessToken, generateRefreshToken } from "../utils/jwt";
+import { db } from "../../lib/db";
+import { loginSchema } from "../../schema/input-validation";
+import { generateAccessToken, generateRefreshToken } from "../../utils/jwt";
 
 const LoginRouter = Router();
 
@@ -19,7 +19,8 @@ LoginRouter.post("/", async (req: Request, res: Response) => {
             return;
         }
 
-        const { email, password } = verifiedSchema.data;
+        const { email } = verifiedSchema.data;
+        const UserPassword = verifiedSchema.data.password;
 
         const existingUser = await db.user.findUnique({
             where: { email }
@@ -33,7 +34,8 @@ LoginRouter.post("/", async (req: Request, res: Response) => {
             return;
         }
 
-        const correctPassword = await bcryptjs.compare(password, existingUser.password);
+        const { password, ...user } = existingUser;
+        const correctPassword = await bcryptjs.compare(UserPassword, password);
         if (!correctPassword) {
             res.status(403).json({
                 success: false,
@@ -42,8 +44,9 @@ LoginRouter.post("/", async (req: Request, res: Response) => {
             return;
         }
 
-        const accessToken = generateAccessToken(existingUser.email);
-        const refreshToken = generateRefreshToken(existingUser.email);
+        const { id, role } = existingUser;
+        const accessToken = generateAccessToken({ id, email, role })
+        const refreshToken = generateRefreshToken({ id, email, role });
         const isProduction = process.env.NODE_ENV === "production";
 
         res.cookie("accessToken", accessToken, {
@@ -60,19 +63,9 @@ LoginRouter.post("/", async (req: Request, res: Response) => {
             maxAge: 30 * 24 * 60 * 60 * 1000,
         });
 
-        const user = {
-            id: existingUser.id,
-            name: existingUser.name,
-            email: existingUser.email,
-            role: existingUser.role,
-            createdAt: existingUser.createdAt,
-        }
-
         res.status(200).json({
             success: true,
             message: "Logged in successfully",
-            accessToken,
-            refreshToken,
             user: user
         });
         return;

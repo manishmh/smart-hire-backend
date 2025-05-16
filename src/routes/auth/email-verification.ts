@@ -1,6 +1,6 @@
-import { Router, Response, Request } from "express";
-import { getVerificationTokenByToken } from "../services/auth/verfication-token";
-import { db } from "../lib/db";
+import { Request, Response, Router } from "express";
+import { db } from "../../lib/db";
+import { getVerificationTokenByToken } from "../../services/auth/verfication-token";
 
 const EmailVerificationRouter = Router();
 
