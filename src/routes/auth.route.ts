@@ -7,6 +7,8 @@ import RegisterRouter from "./auth/register";
 import ResetPasswordRouter from "./auth/reset-password";
 import VerifyTokenRouter from "./auth/verify-token";
 import NewFormRouter from "./dashboard/new-form";
+import FormSectionRouter from "./dashboard/form-section";
+import FormFieldRouter from "./dashboard/form-field";
 
 const router = Router();
 
@@ -23,5 +25,7 @@ router.use("/verify-token", VerifyTokenRouter)
 
 // Dashbaord routers
 router.use("/new-form", NewFormRouter)
+router.use("/form-section", FormSectionRouter)
+router.use("/form-field", FormFieldRouter)
 
 export default router;

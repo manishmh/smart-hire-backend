@@ -65,7 +65,7 @@ model TwoFactorConfirmation {
 
 model Form {
   id          String        @id @default(uuid())
-  name        String
+  name        String        @unique
   description String?
   userId      String
   user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -81,6 +81,9 @@ model FormSection {
   formId String
   fields FormField[]
   form   Form        @relation(fields: [formId], references: [id], onDelete: Cascade)
+
+  @@unique([formId, title])
+  @@unique([formId, order])
 }
 
 model FormField {
@@ -88,19 +91,21 @@ model FormField {
   label        String
   fieldType    String
   required     Boolean
-  order        String
+  order        Int
   placeholder  String?
   defaultValue String?
   sectionId    String
   section      FormSection    @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   option       FieldOptions[]
+
+  @@unique([sectionId, order])
+  @@unique([sectionId, label])
 }
 
 model FieldOptions {
   id      String    @id
   value   String
   label   String
-  order   Int
   fieldId String
   field   FormField @relation(fields: [fieldId], references: [id], onDelete: Cascade)
 }
