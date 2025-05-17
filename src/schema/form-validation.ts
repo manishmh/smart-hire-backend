@@ -31,9 +31,13 @@ export const putFormFieldSchema = formFieldSchema
     .strict()
     .extend({ fieldId: z.string(), sectionId: z.string() })
 
-export const fieldOptionSchmea = z.object({
-    value: z.string({ required_error: "Value is required" }),
-    label: z.string({ required_error: "Label is required" }),
-    order: z.string({ required_error: "Order is required" }),
-    fieldId: z.string({ required_error: "Field id is required" })
-})
+export const fieldOptionsSchema = z.object({
+  label: z.string({ required_error: "Label is required" }),
+  value: z.any({ required_error: "Value is required" }),
+  fieldId: z.string({ required_error: "fieldId is required "})
+});
+
+export const putFieldOptionsSchema = fieldOptionsSchema
+    .extend({ id: z.string() })
+    .partial()
+    .strict()

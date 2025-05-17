@@ -9,6 +9,7 @@ import VerifyTokenRouter from "./auth/verify-token";
 import NewFormRouter from "./dashboard/new-form";
 import FormSectionRouter from "./dashboard/form-section";
 import FormFieldRouter from "./dashboard/form-field";
+import FormOptionRouter from "./dashboard/form-option";
 
 const router = Router();
 
@@ -27,5 +28,6 @@ router.use("/verify-token", VerifyTokenRouter)
 router.use("/new-form", NewFormRouter)
 router.use("/form-section", FormSectionRouter)
 router.use("/form-field", FormFieldRouter)
+router.use("/field-option", FormOptionRouter)
 
 export default router;

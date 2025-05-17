@@ -103,9 +103,11 @@ model FormField {
 }
 
 model FieldOptions {
-  id      String    @id
-  value   String
+  id      String    @id @default(uuid())
   label   String
+  value   Json
   fieldId String
   field   FormField @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+
+  @@unique([fieldId, label])
 }
