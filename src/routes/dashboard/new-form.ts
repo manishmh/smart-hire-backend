@@ -31,61 +31,41 @@ NewFormRouter.get("/:formId", TokenAuthorization, async (req: Request, res: Resp
 
 NewFormRouter.get("/", TokenAuthorization, async (req: Request, res: Response) => {
   try {
-    const userId = req.user?.id; 
+    const userId = req.user?.id;
+
+    if (!userId) {
+      res.status(401).json({ success: false, message: "User not authenticated" });
+      return;
+    }
+
     const completedQuery = req.query.completed;
 
-    if (!completedQuery) {
-        res.status(404).json({ success: false, message: "completed query missing" })
-        return;
+    let forms;
+
+    if (typeof completedQuery === "string") {
+      const completed = completedQuery === "true";
+      forms = await db.form.findMany({
+        where: {
+          userId,
+          completed,
+        },
+      });
+    } else {
+      forms = await db.form.findMany({
+        where: { userId },
+      });
     }
-    const completed = completedQuery === "true" ? true : false;
 
-    const forms = await db.form.findMany({
-      where: {
-        userId,
-        completed,
-      },
-    });
-
-    res.status(200).json(forms);
+    res.status(200).json({ success: true, message: "Forms fetched", forms });
     return;
+
   } catch (error) {
     console.error("Error fetching forms:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ success: false, message: "Internal server error" });
     return;
   }
 });
 
-
-NewFormRouter.get("/", TokenAuthorization, async (req: Request, res: Response) => {
-    try {
-        const userId = req.user?.id;
-        if (!userId) {
-            res.status(404).json({ success: false, message: "user not authenticated" });
-            return;
-        }
-
-        const userWithForms = await db.user.findUnique({ where: 
-            { id: userId },
-            include: {
-                forms: true,
-            }
-        })
-
-        if (!userWithForms) {
-            res.status(404).json({ success: false, message: "User not found" });
-            return;
-        }
-
-        res.status(200).json({ success: true, message: "forms fetched", form: userWithForms?.forms })
-        return;
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: "Something went wrong" });
-        return;
-    }
-})
 
 NewFormRouter.post("/", TokenAuthorization, async (req: Request, res: Response) => {
     try {
