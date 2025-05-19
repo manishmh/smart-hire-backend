@@ -48,7 +48,10 @@ NewFormRouter.get("/", TokenAuthorization, async (req: Request, res: Response) =
         where: {
           userId,
           completed,
-        },
+        }, 
+        orderBy: {
+            createdAt: "desc"
+        }
       });
     } else {
       forms = await db.form.findMany({
@@ -77,7 +80,7 @@ NewFormRouter.post("/", TokenAuthorization, async (req: Request, res: Response) 
             return;
         }
         if (!name) {
-            res.status(401).json({ success: false, message: "No user id" })
+            res.status(401).json({ success: false, message: "No Name" })
             return;
         }
 
