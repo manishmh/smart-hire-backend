@@ -1,7 +1,7 @@
 import { Request, Response, Router } from "express";
 import { db } from "../../lib/db";
 import { TokenAuthorization } from "../../middleware/token-authorization";
-import { formSchema, updateFormSchema } from "../../schema/form-validation";
+import { updateFormSchema } from "../../schema/form-validation";
 
 const NewFormRouter = Router();
 
@@ -28,6 +28,34 @@ NewFormRouter.get("/:formId", TokenAuthorization, async (req: Request, res: Resp
         return;
     }
 })
+
+NewFormRouter.get("/", TokenAuthorization, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.id; 
+    const completedQuery = req.query.completed;
+
+    if (!completedQuery) {
+        res.status(404).json({ success: false, message: "completed query missing" })
+        return;
+    }
+    const completed = completedQuery === "true" ? true : false;
+
+    const forms = await db.form.findMany({
+      where: {
+        userId,
+        completed,
+      },
+    });
+
+    res.status(200).json(forms);
+    return;
+  } catch (error) {
+    console.error("Error fetching forms:", error);
+    res.status(500).json({ message: "Internal server error" });
+    return;
+  }
+});
+
 
 NewFormRouter.get("/", TokenAuthorization, async (req: Request, res: Response) => {
     try {
@@ -61,26 +89,27 @@ NewFormRouter.get("/", TokenAuthorization, async (req: Request, res: Response) =
 
 NewFormRouter.post("/", TokenAuthorization, async (req: Request, res: Response) => {
     try {
-        const formData = req.body
-        const verifiedSchema = formSchema.safeParse(formData);
-    
-        if (!verifiedSchema.success) {
-            res.status(401).json({ success: false, message: verifiedSchema.error.errors[0].message })
-            return;
-        }
-    
         const userId = req.user?.id;
+        const { name } = req.body;
+        
         if (!userId) {
             res.status(401).json({ success: false, message: "No user id" })
             return;
         }
-    
-        const { name, description } = verifiedSchema.data;
-    
+        if (!name) {
+            res.status(401).json({ success: false, message: "No user id" })
+            return;
+        }
+
+        const existingName = await db.form.findUnique({ where: { name }} )
+        if (existingName) {
+            res.status(400).json({ success: false, message: "Name is already taken" })
+            return;
+        }
+
         const form = await db.form.create({
             data: {
                 name,
-                description,
                 userId
             }
         })

@@ -68,6 +68,7 @@ model Form {
   name        String        @unique
   description String?
   userId      String
+  completed   Boolean       @default(false)
   user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   sections    FormSection[]
   createdAt   DateTime      @default(now())
