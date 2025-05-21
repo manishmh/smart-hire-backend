@@ -67,12 +67,12 @@ model Form {
   id          String        @id @default(uuid())
   name        String        @unique
   description String?
-  userId      String
   completed   Boolean       @default(false)
-  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  sections    FormSection[]
+  userId      String
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sections    FormSection[]
 }
 
 model FormSection {
@@ -87,28 +87,48 @@ model FormSection {
   @@unique([formId, order])
 }
 
+enum FieldType {
+  text
+  number
+  email
+  select
+  checkbox
+  radio
+  file
+  date
+  group
+  submit
+  review
+}
+
 model FormField {
-  id           String         @id @default(uuid())
-  label        String
-  fieldType    String
-  required     Boolean
-  order        Int
-  placeholder  String?
-  defaultValue String?
-  sectionId    String
-  section      FormSection    @relation(fields: [sectionId], references: [id], onDelete: Cascade)
-  option       FieldOptions[]
+  id          String      @id @default(uuid())
+  label       String
+  fieldType   FieldType
+  order       Int
+  required    Boolean
+  placeholder String?
+  sectionId   String
+  section     FormSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  subField    SubField[]
 
   @@unique([sectionId, order])
   @@unique([sectionId, label])
 }
 
-model FieldOptions {
-  id      String    @id @default(uuid())
-  label   String
-  value   Json
-  fieldId String
-  field   FormField @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+model SubField {
+  id           String    @id @default(uuid())
+  label        String
+  type         FieldType
+  order        Int
+  required     Boolean
+  placeholder  String?
+  defaultValue String?
+  hint         String?
+  options      Json?
+  fieldId      String
+  field        FormField @relation(fields: [fieldId], references: [id], onDelete: Cascade)
 
   @@unique([fieldId, label])
+  @@unique([fieldId, order])
 }

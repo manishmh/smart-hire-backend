@@ -2,6 +2,7 @@ import { Request, Response, Router } from "express";
 import { db } from "../../lib/db";
 import { TokenAuthorization } from "../../middleware/token-authorization";
 import { formFieldSchema, putFormFieldSchema } from "../../schema/form-validation";
+import { FieldType } from '@prisma/client'; 
 
 const FormFieldRouter = Router();
 
@@ -62,11 +63,16 @@ FormFieldRouter.post('/', TokenAuthorization, async (req: Request, res: Response
         const validatedData = formFieldSchema.safeParse(data);
 
         if (!validatedData.success) {
-            res.status(400).json({ success: false, message: validatedData.error.errors[0].message }) 
+            res.status(400).json({ success: false, message: validatedData.error.errors[0].message });
             return;
         }
 
-        const { label, sectionId, fieldType, required, placeholder, defaultValue } = validatedData.data;
+        const { label, sectionId, fieldType, required } = validatedData.data;
+
+        if (!Object.values(FieldType).includes(fieldType as FieldType)) {
+            res.status(400).json({ success: false, message: `Invalid fieldType: ${fieldType}` });
+            return;
+        }
 
         const existingField = await db.formField.findUnique({
             where: {
@@ -75,115 +81,116 @@ FormFieldRouter.post('/', TokenAuthorization, async (req: Request, res: Response
                     label
                 }
             }
-        })
-        
+        });
+
         if (existingField) {
-            res.status(400).json({ success: false, message: `${existingField.label} with order ${existingField.order} already exists` })
+            res.status(400).json({ success: false, message: `${existingField.label} with order ${existingField.order} already exists` });
             return;
         }
 
         const lastField = await db.formField.findFirst({
             where: { sectionId },
             orderBy: { order: "desc" }
-        })
+        });
 
         const nextOrder: number = lastField ? lastField.order + 1 : 0;
+
         const baseData = {
             label,
-            fieldType,
+            fieldType: fieldType as FieldType,
             required,
             order: nextOrder,
             sectionId,
         };
 
-        const optionalData = {
-            ...(placeholder !== undefined && { placeholder }),
-            ...(defaultValue !== undefined && { defaultValue }),
-        };
-
         const field = await db.formField.create({
-            data: {
-                ...baseData,
-                ...optionalData,
-            },
+            data: baseData
         });
 
-        res.status(200).json({ success: true, message: "form field created", field })
+        res.status(200).json({ success: true, message: "form field created", field });
         return;
 
     } catch (error) {
-        console.error(error)
-        res.status(500).json({ success: false, message: "Something went wrong! try again" }) 
+        console.error(error);
+        res.status(500).json({ success: false, message: "Something went wrong! try again" });
         return;
     }
-}) 
+});
 
 FormFieldRouter.put('/', TokenAuthorization, async (req: Request, res: Response) => {
     try {
-    const data = req.body;
+        const data = req.body;
 
-    const validatedData = putFormFieldSchema.safeParse(data);
-    if (!validatedData.success) {
-        res.status(400).json({ success: false, message: validatedData.error.errors[0].message });
-        return;
-    }
-
-    const { fieldId, sectionId, order: newOrder } = validatedData.data;
-
-    const field = await db.formField.findUnique({ where: { id: fieldId } });
-    if (!field) {
-        res.status(400).json({ success: false, message: "Field does not exist" });
-        return;
-    }
-
-    const updateFields = { ...validatedData.data } as Partial<typeof validatedData.data>;
-
-    delete updateFields.fieldId;
-    delete updateFields.sectionId;
-    delete updateFields.order; 
-
-    if (typeof newOrder === "number" && newOrder !== field.order) {
-        const conflictingField = await db.formField.findFirst({
-            where: { order: newOrder, sectionId }
-        });
-
-        if (!conflictingField) {
-            res.status(400).json({ success: false, message: "Target order does not exist" });
+        const validatedData = putFormFieldSchema.safeParse(data);
+        if (!validatedData.success) {
+            res.status(400).json({ success: false, message: validatedData.error.errors[0].message });
             return;
         }
 
-        await db.formField.update({
+        const { fieldId, sectionId, order: newOrder } = validatedData.data;
+
+        const field = await db.formField.findUnique({ where: { id: fieldId } });
+        if (!field) {
+            res.status(400).json({ success: false, message: "Field does not exist" });
+            return;
+        }
+
+        // Build updateFields while removing non-updatable fields
+        const updateFields: any = { ...validatedData.data };
+        delete updateFields.fieldId;
+        delete updateFields.sectionId;
+        delete updateFields.order;
+
+        // Convert fieldType to Prisma Enum if present
+        if (updateFields.fieldType) {
+            if (!Object.values(FieldType).includes(updateFields.fieldType)) {
+                res.status(400).json({ success: false, message: `Invalid fieldType: ${updateFields.fieldType}` });
+                return;
+            }
+            updateFields.fieldType = updateFields.fieldType as FieldType;
+        }
+
+        // Handle order swap
+        if (typeof newOrder === "number" && newOrder !== field.order) {
+            const conflictingField = await db.formField.findFirst({
+                where: { order: newOrder, sectionId }
+            });
+
+            if (!conflictingField) {
+                res.status(400).json({ success: false, message: "Target order does not exist" });
+                return;
+            }
+
+            await db.formField.update({
+                where: { id: fieldId },
+                data: { order: -1 }
+            });
+
+            await db.formField.update({
+                where: { id: conflictingField.id },
+                data: { order: field.order }
+            });
+
+            updateFields.order = newOrder;
+        }
+
+        const updatedField = await db.formField.update({
             where: { id: fieldId },
-            data: { order: -1 }
+            data: updateFields
         });
 
-        await db.formField.update({
-            where: { id: conflictingField.id },
-            data: { order: field.order }
+        res.status(200).json({
+            success: true,
+            message: "Field updated successfully",
+            field: updatedField
         });
-
-        updateFields.order = newOrder; 
+        return;
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: "Something went wrong! Try again." });
+        return;
     }
-
-    const updatedField = await db.formField.update({
-        where: { id: fieldId },
-        data: updateFields
-    });
-
-    res.status(200).json({
-        success: true,
-        message: "Field updated successfully",
-        field: updatedField
-    });
-    return;
-} catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: "Something went wrong! Try again." });
-    return;
-}
-
-
-})
+});
 
 FormFieldRouter.delete('/:fieldId', TokenAuthorization, async (req: Request, res: Response) => {
     try {

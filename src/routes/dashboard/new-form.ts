@@ -2,6 +2,7 @@ import { Request, Response, Router } from "express";
 import { db } from "../../lib/db";
 import { TokenAuthorization } from "../../middleware/token-authorization";
 import { updateFormSchema } from "../../schema/form-validation";
+import { DefaultSections } from "../../data/default-sections";
 
 const NewFormRouter = Router();
 
@@ -13,7 +14,23 @@ NewFormRouter.get("/:formId", TokenAuthorization, async (req: Request, res: Resp
             return;
         }
 
-        const form = await db.form.findUnique({ where: {id: formId} });
+        const form = await db.form.findUnique({ 
+            where: { id: formId },
+            include: {
+                sections: {
+                orderBy: { order: 'asc' },
+                include: {
+                    fields: {
+                        orderBy: { order: 'asc' },
+                        include: {
+                            subField: { orderBy: { order: 'asc' } }, 
+                        },
+                    },
+                },
+                },
+            },
+        });
+
         if (!form) {
             res.status(404).json({ success: false, message: "form does not exists" })
             return;
@@ -69,7 +86,6 @@ NewFormRouter.get("/", TokenAuthorization, async (req: Request, res: Response) =
   }
 });
 
-
 NewFormRouter.post("/", TokenAuthorization, async (req: Request, res: Response) => {
     try {
         const userId = req.user?.id;
@@ -91,9 +107,10 @@ NewFormRouter.post("/", TokenAuthorization, async (req: Request, res: Response) 
         }
 
         const form = await db.form.create({
-            data: {
+            data: { 
                 name,
-                userId
+                userId,
+                sections: DefaultSections
             }
         })
 

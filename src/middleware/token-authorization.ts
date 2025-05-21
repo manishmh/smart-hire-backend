@@ -7,8 +7,7 @@ export const TokenAuthorization = (
   res: Response,
   next: NextFunction
 ) => {
-  const accessToken =
-    req.cookies.accessToken || (req.headers["authorization"] as string);
+  const accessToken = req.cookies.accessToken || (req.headers["authorization"] as string);
 
   if (!accessToken) {
     res

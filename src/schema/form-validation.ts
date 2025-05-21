@@ -20,8 +20,6 @@ export const formFieldSchema = z.object({
     label: z.string({ required_error: "Label is required" }),
     fieldType: z.string({ required_error: "Field type is required" }),
     required: z.boolean({ required_error: "requried is required" }),
-    placeholder: z.string().optional(),
-    defaultValue: z.string().optional(),
     sectionId: z.string({ required_error: "section id is required" })
 })
 
@@ -31,13 +29,35 @@ export const putFormFieldSchema = formFieldSchema
     .strict()
     .extend({ fieldId: z.string(), sectionId: z.string() })
 
-export const fieldOptionsSchema = z.object({
-  label: z.string({ required_error: "Label is required" }),
-  value: z.any({ required_error: "Value is required" }),
-  fieldId: z.string({ required_error: "fieldId is required "})
+export const fieldTypeEnum = z.enum([
+  'text',
+  'number',
+  'email',
+  'select',
+  'checkbox',
+  'radio',
+  'file',
+  'date',
+  'group',
+  'submit',
+  'review',
+]);
+
+export const subFieldSchema = z.object({
+  label: z.string().min(1, "Label is required"),
+  type: fieldTypeEnum,
+  required: z.boolean(),
+  placeholder: z.string().optional(),
+  defaultValue: z.string().optional(),
+  hint: z.string().optional(),
+  options: z.any().optional(), 
+  fieldId: z.string().uuid(),
 });
 
-export const putFieldOptionsSchema = fieldOptionsSchema
-    .extend({ id: z.string() })
-    .partial()
-    .strict()
+export const updateSubFieldSchema = subFieldSchema
+  .partial()
+  .strict()
+  .extend({
+    id: z.string().uuid(),
+    order: z.number().int().nonnegative().optional()
+  });
