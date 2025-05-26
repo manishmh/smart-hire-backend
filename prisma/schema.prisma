@@ -22,10 +22,10 @@ model User {
   emailVerified         DateTime?
   image                 String?
   isTwoFactorEnabled    Boolean                @default(false)
-  twoFactorConfirmation TwoFactorConfirmation?
-  forms                 Form[]
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
+  twoFactorConfirmation TwoFactorConfirmation?
+  forms                 Form[]
 }
 
 model PasswordResetToken {

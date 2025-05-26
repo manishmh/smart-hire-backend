@@ -1,8 +1,8 @@
 import { Request, Response, Router } from "express";
+import { DefaultSections } from "../../data/default-sections";
 import { db } from "../../lib/db";
 import { TokenAuthorization } from "../../middleware/token-authorization";
 import { updateFormSchema } from "../../schema/form-validation";
-import { DefaultSections } from "../../data/default-sections";
 
 const NewFormRouter = Router();
 
@@ -89,7 +89,7 @@ NewFormRouter.get("/", TokenAuthorization, async (req: Request, res: Response) =
 NewFormRouter.post("/", TokenAuthorization, async (req: Request, res: Response) => {
     try {
         const userId = req.user?.id;
-        const { name } = req.body;
+        const { name, pageOption, multiPageChoice, template } = req.body;
         
         if (!userId) {
             res.status(401).json({ success: false, message: "No user id" })
@@ -106,11 +106,19 @@ NewFormRouter.post("/", TokenAuthorization, async (req: Request, res: Response) 
             return;
         }
 
+        let newForm = {};
+        if (pageOption === "multiple") {
+            const emptySection = { create: [{ title: "Page 1", order: 1 }] };
+            newForm = multiPageChoice === "template" ? DefaultSections : emptySection;
+        }
+
         const form = await db.form.create({
             data: { 
                 name,
                 userId,
-                sections: DefaultSections
+                sections: newForm
+            }, include: {
+                sections: true
             }
         })
 
