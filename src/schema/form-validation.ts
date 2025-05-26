@@ -7,9 +7,17 @@ export const titleSchema = z.object({
 export const formSchema =  z.object({
     name: z.string({ required_error: "Name is required"}).min(1),
     description: z.string({ required_error: "Description is required"}).optional().nullable(),
-}).strict();
+})
 
-export const updateFormSchema = formSchema.partial().strict();
+export const pageOptionEnum = z.enum(["single", "multiple"]);
+
+export const updateFormSchema = z.object({
+  name: z.string().min(1).optional(),
+  description: z.string().optional().nullable(),
+  completed: z.boolean().optional(),
+  pageOption: pageOptionEnum.optional(),
+  sections: z.array(z.any()).optional(), 
+});
 
 export const formSectionSchema = z.object({
     title: z.string({ required_error: "Title is required" }),

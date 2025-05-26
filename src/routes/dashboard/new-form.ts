@@ -36,7 +36,7 @@ NewFormRouter.get("/:formId", TokenAuthorization, async (req: Request, res: Resp
             return;
         }
 
-        res.status(200).json({ success: false, message: "Form fetched successfully", form })
+        res.status(200).json({ success: true, message: "Form fetched successfully", form })
         return;
 
     } catch (error) {
@@ -100,22 +100,22 @@ NewFormRouter.post("/", TokenAuthorization, async (req: Request, res: Response) 
             return;
         }
 
-        const existingName = await db.form.findUnique({ where: { name }} )
+        const existingName = await db.form.findUnique({ where: { name }})
         if (existingName) {
             res.status(400).json({ success: false, message: "Name is already taken" })
             return;
         }
 
-        let newForm = {};
-        if (pageOption === "multiple") {
-            const emptySection = { create: [{ title: "Page 1", order: 1 }] };
-            newForm = multiPageChoice === "template" ? DefaultSections : emptySection;
+        let newForm = { create: [{ title: "Untitled section", order: 1 }] }; 
+        if (pageOption === "multiple" && multiPageChoice === "template") {
+            newForm = DefaultSections;
         }
 
         const form = await db.form.create({
             data: { 
                 name,
                 userId,
+                pageOption,
                 sections: newForm
             }, include: {
                 sections: true
@@ -132,39 +132,6 @@ NewFormRouter.post("/", TokenAuthorization, async (req: Request, res: Response) 
     } catch (error) {
         console.error(error)        
         res.status(500).json({ success: false, message: "something went wrong! try again"})
-        return;
-    }
-})
-
-NewFormRouter.delete("/:formId", TokenAuthorization, async (req: Request, res: Response) => {
-    try {
-        const { formId } = req.params;
-        const userId = req.user?.id;
-
-        if (!formId || typeof formId !== "string") {
-            res.status(404).json({ success: false, message: "Form Id missing" })
-            return;
-        }
-
-        const form = await db.form.findUnique({ where: { id: formId } })
-
-        if (!form) {
-            res.status(404).json({ success: false, message: "Form not found." })
-            return;
-        }
-
-        if (form?.userId !== userId) {
-            res.status(404).json({ success: false, message: "Unauthorized to delete this form." })
-            return;
-        }
-
-        await db.form.delete({ where: { id: formId } })
-
-        res.status(200).json({ success: true, message: "Form deleted successfully" })
-        return;
-    } catch (error) {
-        console.error(error)
-        res.status(500).json({ success: false, message: "something went wrong! try again" })
         return;
     }
 })
@@ -210,5 +177,39 @@ NewFormRouter.put("/:formId", TokenAuthorization, async (req: Request, res: Resp
         
     }
 })
+
+NewFormRouter.delete("/:formId", TokenAuthorization, async (req: Request, res: Response) => {
+    try {
+        const { formId } = req.params;
+        const userId = req.user?.id;
+
+        if (!formId || typeof formId !== "string") {
+            res.status(404).json({ success: false, message: "Form Id missing" })
+            return;
+        }
+
+        const form = await db.form.findUnique({ where: { id: formId } })
+
+        if (!form) {
+            res.status(404).json({ success: false, message: "Form not found." })
+            return;
+        }
+
+        if (form?.userId !== userId) {
+            res.status(404).json({ success: false, message: "Unauthorized to delete this form." })
+            return;
+        }
+
+        await db.form.delete({ where: { id: formId } })
+
+        res.status(200).json({ success: true, message: "Form deleted successfully" })
+        return;
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ success: false, message: "something went wrong! try again" })
+        return;
+    }
+})
+
 
 export default NewFormRouter
